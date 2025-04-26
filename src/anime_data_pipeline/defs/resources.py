@@ -67,7 +67,7 @@ resource_defs = dg.Definitions(
         ),
         "duckdb_io_manager": DuckDBPandasIOManager(
             database=duckdb_path,
-            schema="public",
+            schema="anilist",
         ),
     },
 )
