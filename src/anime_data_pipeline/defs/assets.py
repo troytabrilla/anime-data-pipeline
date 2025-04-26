@@ -138,6 +138,5 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
 
 
 # TODO add assets for analytics (e.g. scores by genre and tag, histogram by genre and tag, histogram by score, etc)
-# TODO materialize assets when dependencies update
-# TODO add a sensor asset?
+# TODO materialize analytics assets when dependencies update
 # TODO add assets for postgres?
