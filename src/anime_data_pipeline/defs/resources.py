@@ -29,7 +29,7 @@ class AniListAPIResource(dg.ConfigurableResource):
 class LocalFileJSONIOManager(dg.ConfigurableIOManager):
     data_path: str = Field(description="Path to data directory")
 
-    def get_path(self, context) -> Path:
+    def get_path(self, context: dg.InputContext | dg.OutputContext) -> Path:
         id_path = context.get_identifier()
         if len(id_path) > 1:
             id_path.pop()
@@ -61,7 +61,7 @@ query_path = dg.EnvVar("QUERY_PATH")
 resource_defs = dg.Definitions(
     resources={
         "anilist_api": AniListAPIResource(user_name=user_name, query_path=query_path),
-        "io_manager": LocalFileJSONIOManager(
+        "local_io_manager": LocalFileJSONIOManager(
             data_path=data_path,
         ),
     },

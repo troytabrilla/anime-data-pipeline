@@ -8,4 +8,4 @@ anilist_hourly_schedule = dg.ScheduleDefinition(
     cron_schedule="0 * * * * ",
 )
 
-anilist_hourly_schedule_defs = dg.Definitions(schedules=[anilist_hourly_schedule])
+schedule_defs = dg.Definitions(schedules=[anilist_hourly_schedule])
