@@ -71,7 +71,11 @@ def convert_anilist_json_to_model(data: Any, model: type[BaseModel]):
 
 def validate_dataframe(df: pd.DataFrame) -> dg.AssetCheckResult:
     count = len(df)
-    preview = df.tail().select_dtypes(exclude=["object"])
+    preview = df.tail().drop(
+        ["stats", "rankings", "statistics", "genres", "tags", "synonyms"],
+        axis=1,
+        errors="ignore",
+    )
     metadata = {
         "count": dg.MetadataValue.int(count),
         "preview": dg.MetadataValue.md(preview.to_markdown()),
