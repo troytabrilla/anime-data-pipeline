@@ -1,0 +1,292 @@
+query AnimeListQuery($userName: String) {
+  MediaListCollection(userName: $userName, type: ANIME) {
+    lists {
+      name
+      entries {
+        media {
+          id
+          genres
+          description
+          coverImage {
+            extraLarge
+          }
+          type
+          tags {
+            category
+            description
+            name
+            rank
+          }
+          episodes
+          format
+          season
+          seasonYear
+          startDate {
+            year
+            month
+            day
+          }
+          status
+          duration
+          countryOfOrigin
+          endDate {
+            day
+            month
+            year
+          }
+          synonyms
+          title {
+            english
+            native
+            romaji
+          }
+          idMal
+          chapters
+          volumes
+          isLicensed
+          source
+          hashtag
+          trailer {
+            id
+            site
+            thumbnail
+          }
+          updatedAt
+          bannerImage
+          averageScore
+          meanScore
+          popularity
+          isLocked
+          trending
+          favourites
+          isFavourite
+          isFavouriteBlocked
+          isAdult
+          nextAiringEpisode {
+            id
+            airingAt
+            timeUntilAiring
+            episode
+            mediaId
+          }
+          externalLinks {
+            id
+            url
+            site
+            siteId
+            type
+            language
+            color
+            icon
+            notes
+            isDisabled
+          }
+          streamingEpisodes {
+            title
+            thumbnail
+            url
+            site
+          }
+          rankings {
+            id
+            rank
+            type
+            format
+            year
+            season
+            allTime
+            context
+          }
+          stats {
+            scoreDistribution {
+              score
+              amount
+            }
+            statusDistribution {
+              status
+              amount
+            }
+          }
+          siteUrl
+        }
+        progress
+        score
+        status
+        createdAt
+        startedAt {
+          year
+          month
+          day
+        }
+        completedAt {
+          year
+          month
+          day
+        }
+        id
+        userId
+        mediaId
+        progressVolumes
+        repeat
+        priority
+        private
+        notes
+        hiddenFromStatusLists
+        customLists
+        advancedScores
+        updatedAt
+      }
+      status
+    }
+  }
+
+  User(name: $userName) {
+    id
+    name
+    avatar {
+      large
+    }
+    statistics {
+      anime {
+        count
+        meanScore
+        standardDeviation
+        minutesWatched
+        episodesWatched
+        chaptersRead
+        volumesRead
+        formats {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          format
+        }
+        statuses {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          status
+        }
+        scores {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          score
+        }
+        lengths {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          length
+        }
+        releaseYears {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          releaseYear
+        }
+        startYears {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          startYear
+        }
+        genres {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          genre
+        }
+        tags {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          tag {
+            id
+            name
+            description
+            category
+            rank
+            isGeneralSpoiler
+            isMediaSpoiler
+            isAdult
+            userId
+          }
+        }
+        countries {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          country
+        }
+        studios {
+          count
+          meanScore
+          minutesWatched
+          chaptersRead
+          studio {
+            id
+            name
+          }
+        }
+      }
+    }
+    bannerImage
+    bans
+    options {
+      titleLanguage
+      displayAdultContent
+      airingNotifications
+      profileColor
+      notificationOptions {
+        type
+        enabled
+      }
+      timezone
+      activityMergeTime
+      staffNameLanguage
+      restrictMessagesToFollowing
+      disabledListActivity {
+        disabled
+        type
+      }
+    }
+    isFollowing
+    isFollower
+    isBlocked
+    about
+    unreadNotificationCount
+    siteUrl
+    donatorTier
+    donatorBadge
+    updatedAt
+    mediaListOptions {
+      scoreFormat
+      rowOrder
+      mangaList {
+        sectionOrder
+        splitCompletedSectionByFormat
+        customLists
+        advancedScoring
+        advancedScoringEnabled
+      }
+      animeList {
+        sectionOrder
+        splitCompletedSectionByFormat
+        customLists
+        advancedScoring
+        advancedScoringEnabled
+      }
+    }
+  }
+}
+

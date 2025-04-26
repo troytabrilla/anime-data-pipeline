@@ -1,0 +1,68 @@
+import dagster as dg
+import requests
+import json
+
+from pydantic import Field, BaseModel
+from typing import Any
+from pathlib import Path
+
+
+class AniListAPIResource(dg.ConfigurableResource):
+    user_name: str = Field(description="User to grab AniList data for")
+    query_path: str = Field(description="Path to queries")
+
+    def query(self, query_filename="anilist.graphql") -> Any:
+        read_path = Path(self.query_path, query_filename)
+        with open(read_path, "r") as read_file:
+            query = read_file.read()
+            body = {
+                "query": query,
+                "variables": {
+                    "userName": self.user_name,
+                },
+            }
+            res = requests.post("https://graphql.anilist.co", json=body)
+            data = res.json()
+            return data
+
+
+class LocalFileJSONIOManager(dg.ConfigurableIOManager):
+    data_path: str = Field(description="Path to data directory")
+
+    def get_path(self, context) -> Path:
+        id_path = context.get_identifier()
+        if len(id_path) > 1:
+            id_path.pop()
+        id_path[-1] = f"{id_path[-1]}.json"
+        path = Path(self.data_path, *id_path)
+        return path
+
+    def handle_output(self, context: dg.OutputContext, data: Any):
+        write_path = self.get_path(context)
+        write_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(write_path, "w") as write_file:
+            if isinstance(data, BaseModel):
+                write_file.write(data.model_dump_json())
+            else:
+                write_file.write(json.dumps(data))
+
+    def load_input(self, context: dg.InputContext) -> Any:
+        read_path = self.get_path(context)
+        with open(read_path, "r") as read_file:
+            raw = read_file.read()
+            data = json.loads(raw)
+            return data
+
+
+user_name = dg.EnvVar("USER_NAME")
+data_path = dg.EnvVar("DATA_PATH")
+query_path = dg.EnvVar("QUERY_PATH")
+
+resource_defs = dg.Definitions(
+    resources={
+        "anilist_api": AniListAPIResource(user_name=user_name, query_path=query_path),
+        "io_manager": LocalFileJSONIOManager(
+            data_path=data_path,
+        ),
+    },
+)
