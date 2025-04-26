@@ -25,7 +25,7 @@ def raw_anilist(anilist_api: AniListAPIResource) -> dg.Output:
 @dg.asset_check(asset=raw_anilist)
 def raw_anilist_validate_check(raw_anilist: dg.Output) -> dg.AssetCheckResult:
     try:
-        schemas.RawModel.model_validate(raw_anilist)
+        schemas.Raw.model_validate(raw_anilist)
         return dg.AssetCheckResult(passed=True)
     except ValidationError as err:
         log.error(err)

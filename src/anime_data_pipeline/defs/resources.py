@@ -5,15 +5,15 @@ import json
 from pydantic import Field, BaseModel
 from typing import Any
 from pathlib import Path
+from dagster_duckdb_pandas import DuckDBPandasIOManager
 
 
 class AniListAPIResource(dg.ConfigurableResource):
     user_name: str = Field(description="User to grab AniList data for")
     query_path: str = Field(description="Path to queries")
 
-    def query(self, query_filename="anilist.graphql") -> Any:
-        read_path = Path(self.query_path, query_filename)
-        with open(read_path, "r") as read_file:
+    def query(self) -> Any:
+        with open(self.query_path, "r") as read_file:
             query = read_file.read()
             body = {
                 "query": query,
@@ -57,12 +57,17 @@ class LocalFileJSONIOManager(dg.ConfigurableIOManager):
 user_name = dg.EnvVar("USER_NAME")
 data_path = dg.EnvVar("DATA_PATH")
 query_path = dg.EnvVar("QUERY_PATH")
+duckdb_path = dg.EnvVar("DUCKDB_PATH")
 
 resource_defs = dg.Definitions(
     resources={
         "anilist_api": AniListAPIResource(user_name=user_name, query_path=query_path),
         "local_io_manager": LocalFileJSONIOManager(
             data_path=data_path,
+        ),
+        "duckdb_io_manager": DuckDBPandasIOManager(
+            database=duckdb_path,
+            schema="public",
         ),
     },
 )
