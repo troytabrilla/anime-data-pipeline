@@ -5,6 +5,7 @@ import json
 from pydantic import Field, BaseModel
 from typing import Any
 from pathlib import Path
+from dagster_duckdb import DuckDBResource
 from dagster_duckdb_pandas import DuckDBPandasIOManager
 
 
@@ -13,8 +14,9 @@ class AniListAPIResource(dg.ConfigurableResource):
     query_path: str = Field(description="Path to queries")
 
     def query(self) -> Any:
-        with open(self.query_path, "r") as read_file:
-            query = read_file.read()
+        query_path = Path(self.query_path, "anilist.graphql")
+        with open(query_path, "r") as query_file:
+            query = query_file.read()
             body = {
                 "query": query,
                 "variables": {
@@ -40,16 +42,16 @@ class LocalFileJSONIOManager(dg.ConfigurableIOManager):
     def handle_output(self, context: dg.OutputContext, data: Any):
         write_path = self.get_path(context)
         write_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(write_path, "w") as write_file:
+        with open(write_path, "w") as json_file:
             if isinstance(data, BaseModel):
-                write_file.write(data.model_dump_json())
+                json_file.write(data.model_dump_json())
             else:
-                write_file.write(json.dumps(data))
+                json_file.write(json.dumps(data))
 
     def load_input(self, context: dg.InputContext) -> Any:
         read_path = self.get_path(context)
-        with open(read_path, "r") as read_file:
-            raw = read_file.read()
+        with open(read_path, "r") as json_file:
+            raw = json_file.read()
             data = json.loads(raw)
             return data
 
@@ -62,6 +64,7 @@ duckdb_path = dg.EnvVar("DUCKDB_PATH")
 resource_defs = dg.Definitions(
     resources={
         "anilist_api": AniListAPIResource(user_name=user_name, query_path=query_path),
+        "duckdb": DuckDBResource(database=duckdb_path),
         "local_io_manager": LocalFileJSONIOManager(
             data_path=data_path,
         ),

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, model_validator
 from datetime import datetime
 from typing import List, Any, Optional, Annotated
 
@@ -35,33 +35,43 @@ class Title(BaseModel):
     romaji: Optional[str]
 
 
-class Image(BaseModel):
-    large: Optional[str]
-    extraLarge: Optional[str]
+class Flattened(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def flatten(cls, data: Optional[Any]) -> Optional[Any]:
+        if data:
+            cls.convert_date("startedAt", data)
+            cls.convert_date("completedAt", data)
+            cls.convert_date("startDate", data)
+            cls.convert_date("endDate", data)
+            cls.flatten_image("coverImage", data)
+            cls.flatten_image("avatar", data)
+        return data
 
-    def to_string(value: Optional[Any]) -> Optional[str]:
-        if value:
-            if "extraLarge" in value:
-                return value["extraLarge"]
-            if "large" in value:
-                return value["large"]
-        return None
+    @classmethod
+    def convert_date(cls, field: str, data: Optional[Any]):
+        if (
+            field in data
+            and data[field]["year"]
+            and data[field]["month"]
+            and data[field]["day"]
+        ):
+            data[field] = datetime(
+                data[field]["year"], data[field]["month"], data[field]["day"]
+            ).strftime("%Y-%m-%d")
+        else:
+            data[field] = None
+
+    @classmethod
+    def flatten_image(cls, field: str, data: Optional[Any]):
+        if field in data:
+            if "extraLarge" in data[field]:
+                data[field] = data[field]["extraLarge"]
+            elif "large" in data[field]:
+                data[field] = data[field]["large"]
 
 
-class Date(BaseModel):
-    year: Optional[int]
-    month: Optional[int]
-    day: Optional[int]
-
-    def to_string(value: Optional[Any]) -> Optional[datetime]:
-        if not value or not value["year"] or not value["month"] or not value["day"]:
-            return None
-        return datetime(value["year"], value["month"], value["day"]).strftime(
-            "%Y-%m-%d"
-        )
-
-
-class FactAnime(BaseModel):
+class FactAnime(Flattened):
     id: int
     userId: int
     mediaId: int
@@ -74,25 +84,25 @@ class FactAnime(BaseModel):
     episodes: Optional[int]
     score: Optional[int]
     watchStatus: Optional[str]
-    startedAt: Annotated[Optional[str], BeforeValidator(Date.to_string)]
-    completedAt: Annotated[Optional[str], BeforeValidator(Date.to_string)]
+    startedAt: Optional[str]
+    completedAt: Optional[str]
     stats: Optional[Any]
     rankings: Optional[Any]
 
 
-class DimensionMedia(BaseModel):
+class DimensionMedia(Flattened):
     id: int
     genres: List[str]
     description: Optional[str]
-    coverImage: Annotated[Optional[str], BeforeValidator(Image.to_string)]
+    coverImage: Optional[str]
     type: Optional[str]
     tags: List[Tag]
     episodes: Optional[int]
     format: Optional[str]
     season: Optional[str]
     seasonYear: Optional[int]
-    startDate: Annotated[Optional[str], BeforeValidator(Date.to_string)]
-    endDate: Annotated[Optional[str], BeforeValidator(Date.to_string)]
+    startDate: Optional[str]
+    endDate: Optional[str]
     synonyms: List[str]
     title: Title
     source: Optional[str]
@@ -100,30 +110,37 @@ class DimensionMedia(BaseModel):
     siteUrl: Optional[str]
     status: Optional[str]
 
+    @model_validator(mode="before")
+    @classmethod
+    def use_media_id(cls, data: Optional[Any]) -> Optional[Any]:
+        if data and "mediaId" in data:
+            data["id"] = data["mediaId"]
+        return data
 
-class DimensionUser(BaseModel):
+
+class DimensionUser(Flattened):
     id: int
     name: str
-    avatar: Annotated[Optional[str], BeforeValidator(Image.to_string)]
+    avatar: Optional[str]
     bannerImage: str
     siteUrl: str
     statistics: Any
 
 
-class Anime(BaseModel):
+class Anime(Flattened):
     id: int
     userId: int
     genres: List[str]
     description: Optional[str]
-    coverImage: Annotated[Optional[str], BeforeValidator(Image.to_string)]
+    coverImage: Optional[str]
     type: Optional[str]
     tags: List[Tag]
     episodes: Optional[int]
     format: Optional[str]
     season: Optional[str]
     seasonYear: Optional[int]
-    startDate: Annotated[Optional[str], BeforeValidator(Date.to_string)]
-    endDate: Annotated[Optional[str], BeforeValidator(Date.to_string)]
+    startDate: Optional[str]
+    endDate: Optional[str]
     synonyms: List[str]
     title: Title
     source: Optional[str]
@@ -136,15 +153,15 @@ class Anime(BaseModel):
     siteUrl: Optional[str]
     progress: Optional[int]
     score: Optional[int]
-    startedAt: Annotated[Optional[str], BeforeValidator(Date.to_string)]
-    completedAt: Annotated[Optional[str], BeforeValidator(Date.to_string)]
+    startedAt: Optional[str]
+    completedAt: Optional[str]
     status: Optional[str]
     watchStatus: Optional[str]
 
 
-class User(BaseModel):
+class User(Flattened):
     id: int
     name: str
-    avatar: Annotated[Optional[str], BeforeValidator(Image.to_string)]
+    avatar: Optional[str]
     bannerImage: str
     siteUrl: str

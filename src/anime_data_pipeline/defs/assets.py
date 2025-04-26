@@ -1,9 +1,12 @@
 import dagster as dg
 import pandas as pd
 import json
+import re
 
 from pydantic import ValidationError, BaseModel
+from dagster_duckdb import DuckDBResource
 from typing import Any
+from pathlib import Path
 
 from .resources import AniListAPIResource
 from ..lib import schemas
@@ -41,6 +44,12 @@ def raw_anilist_validate_check(raw_anilist: dg.Output) -> dg.AssetCheckResult:
         return dg.AssetCheckResult(passed=False, metadata=metadata)
 
 
+def update_df_columns(df: pd.DataFrame) -> pd.DataFrame:
+    pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    df.columns = [pattern.sub("_", name).lower() for name in df.columns]
+    return df
+
+
 def convert_anilist_json_to_model(data: Any, model: type[BaseModel]):
     lists = data["data"]["MediaListCollection"]["lists"]
 
@@ -66,7 +75,10 @@ def convert_anilist_json_to_model(data: Any, model: type[BaseModel]):
 
     log.debug(models[:5])
 
-    return pd.DataFrame.from_dict(models)
+    df = pd.DataFrame.from_dict(models)
+    df = update_df_columns(df)
+
+    return df
 
 
 def validate_dataframe(df: pd.DataFrame) -> dg.AssetCheckResult:
@@ -129,7 +141,10 @@ def dimension_user(raw_anilist: Any) -> pd.DataFrame:
 
     log.debug(models)
 
-    return pd.DataFrame.from_dict(models)
+    df = pd.DataFrame.from_dict(models)
+    df = update_df_columns(df)
+
+    return df
 
 
 @dg.asset_check(asset=dimension_user, blocking=True)
@@ -137,6 +152,65 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
     return validate_dataframe(dimension_user)
 
 
-# TODO add assets for analytics (e.g. scores by genre and tag, histogram by genre and tag, histogram by score, etc)
-# TODO materialize analytics assets when dependencies update
+class AnalysisConfig(dg.Config):
+    duckdb_schema: str = "local.anilist"
+    query_path: str = dg.EnvVar("QUERY_PATH")
+    query_name: str = "anime_scores.sql"
+
+
+@dg.asset(
+    group_name="analysis",
+    compute_kind="duckdb",
+    deps=[fact_anime, dimension_media, dimension_user],
+    automation_condition=dg.AutomationCondition.eager(),
+)
+def anime_scores(
+    duckdb: DuckDBResource, config: AnalysisConfig
+) -> dg.MaterializeResult:
+    query_path = Path(config.query_path, config.query_name)
+    with open(query_path, "r") as query_file:
+        query = query_file.read()
+
+        with duckdb.get_connection() as conn:
+            conn.execute(
+                f"""
+                USE {config.duckdb_schema};
+                CREATE OR REPLACE VIEW
+                    anime_scores
+                AS
+                    {query}
+                """
+            )
+
+            row_count = conn.execute(
+                f"""
+                USE {config.duckdb_schema};
+                SELECT
+                    count(*)
+                FROM
+                    anime_scores;
+                """
+            ).fetchone()
+            count = row_count[0] if row_count else 0
+
+            preview = conn.execute(
+                f"""
+                USE {config.duckdb_schema};
+                SELECT
+                    *
+                FROM
+                    anime_scores;
+                """
+            ).fetchdf()
+
+            log.debug(preview)
+
+            metadata = {
+                "count": dg.MetadataValue.int(count),
+                "preview": dg.MetadataValue.md(preview.tail().to_markdown()),
+            }
+            return dg.MaterializeResult(metadata=metadata)
+
+
+# TODO flatten anime_scores view
 # TODO add assets for postgres?
