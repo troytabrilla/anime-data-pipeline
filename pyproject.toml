@@ -17,6 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dagster-webserver",
+    "pytest>=8.3.5",
 ]
 
 [build-system]

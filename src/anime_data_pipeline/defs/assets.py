@@ -164,9 +164,7 @@ class AnalysisConfig(dg.Config):
     deps=[fact_anime, dimension_media, dimension_user],
     automation_condition=dg.AutomationCondition.eager(),
 )
-def anime_scores(
-    duckdb: DuckDBResource, config: AnalysisConfig
-) -> dg.MaterializeResult:
+def anime_scores(duckdb: DuckDBResource, config: AnalysisConfig) -> pd.DataFrame:
     query_path = Path(config.query_path, config.query_name)
     with open(query_path, "r") as query_file:
         query = query_file.read()
@@ -182,18 +180,7 @@ def anime_scores(
                 """
             )
 
-            row_count = conn.execute(
-                f"""
-                USE {config.duckdb_schema};
-                SELECT
-                    count(*)
-                FROM
-                    anime_scores;
-                """
-            ).fetchone()
-            count = row_count[0] if row_count else 0
-
-            preview = conn.execute(
+            df = conn.execute(
                 f"""
                 USE {config.duckdb_schema};
                 SELECT
@@ -203,10 +190,11 @@ def anime_scores(
                 """
             ).fetchdf()
 
-            log.debug(preview)
+            log.debug(df.tail())
 
-            metadata = {
-                "count": dg.MetadataValue.int(count),
-                "preview": dg.MetadataValue.md(preview.tail().to_markdown()),
-            }
-            return dg.MaterializeResult(metadata=metadata)
+            return df
+
+
+@dg.asset_check(asset=anime_scores, blocking=True)
+def anime_scores_validate_check(anime_scores: pd.DataFrame) -> dg.AssetCheckResult:
+    return validate_dataframe(anime_scores)
