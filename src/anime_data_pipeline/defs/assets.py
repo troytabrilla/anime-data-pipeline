@@ -210,7 +210,3 @@ def anime_scores(
                 "preview": dg.MetadataValue.md(preview.tail().to_markdown()),
             }
             return dg.MaterializeResult(metadata=metadata)
-
-
-# TODO flatten anime_scores view
-# TODO add assets for postgres?
