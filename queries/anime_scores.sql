@@ -22,13 +22,17 @@ users AS (
 media AS (
   SELECT
     id,
-    title -> '$.english' AS english_title,
-    title -> '$.native' AS native_title,
-    title -> '$.romaji' AS romaji_title,
+    CAST(title -> '$.english' AS VARCHAR) AS english_title,
+    CAST(title -> '$.native' AS VARCHAR) AS native_title,
+    CAST(title -> '$.romaji' AS VARCHAR) AS romaji_title,
     description,
     UNNEST (synonyms) AS synonym,
     UNNEST (genres) AS genre,
-    UNNEST (tags) -> '$.name' AS tag,
+    REPLACE(
+      CAST(UNNEST (tags) -> '$.name' AS VARCHAR),
+      '"',
+      ''
+    ) AS tag,
     source,
     CAST(episodes AS INT) AS episodes,
     season,
