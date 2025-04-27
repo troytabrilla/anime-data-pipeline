@@ -50,35 +50,39 @@ def update_df_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def convert_anilist_json_to_model(data: Any, model: type[BaseModel]):
-    lists = data["data"]["MediaListCollection"]["lists"]
+def convert_anilist_json_to_model(data: Any, model: type[BaseModel]) -> pd.DataFrame:
+    try:
+        lists = data["data"]["MediaListCollection"]["lists"]
 
-    models = []
-    for lst in lists:
-        for entry in lst["entries"]:
-            try:
-                media = entry["media"]
-                status = media["status"]
-                watch_status = entry["status"]
-                data = (
-                    media
-                    | entry
-                    | {
-                        "status": status,
-                        "watchStatus": watch_status,
-                    }
-                )
-                fact = model.model_validate(data).model_dump()
-                models.append(fact)
-            except ValidationError as err:
-                log.error(err)
+        models = []
+        for lst in lists:
+            for entry in lst["entries"]:
+                try:
+                    media = entry["media"]
+                    status = media["status"]
+                    watch_status = entry["status"]
+                    data = (
+                        media
+                        | entry
+                        | {
+                            "status": status,
+                            "watchStatus": watch_status,
+                        }
+                    )
+                    fact = model.model_validate(data).model_dump()
+                    models.append(fact)
+                except ValidationError as err:
+                    log.error(err)
 
-    log.debug(models[:5])
+        log.debug(models[:5])
 
-    df = pd.DataFrame.from_dict(models)
-    df = update_df_columns(df)
+        df = pd.DataFrame.from_dict(models)
+        df = update_df_columns(df)
 
-    return df
+        return df
+    except KeyError as err:
+        log.error(err)
+        return pd.DataFrame()
 
 
 def validate_dataframe(df: pd.DataFrame) -> dg.AssetCheckResult:
@@ -136,15 +140,19 @@ def dimension_media_validate_check(
     deps=[raw_anilist],
 )
 def dimension_user(raw_anilist: Any) -> pd.DataFrame:
-    user = raw_anilist["data"]["User"]
-    models = [schemas.DimensionUser.model_validate(user).model_dump()]
+    try:
+        user = raw_anilist["data"]["User"]
+        models = [schemas.DimensionUser.model_validate(user).model_dump()]
 
-    log.debug(models)
+        log.debug(models)
 
-    df = pd.DataFrame.from_dict(models)
-    df = update_df_columns(df)
+        df = pd.DataFrame.from_dict(models)
+        df = update_df_columns(df)
 
-    return df
+        return df
+    except KeyError as err:
+        log.error(err)
+        return pd.DataFrame()
 
 
 @dg.asset_check(asset=dimension_user, blocking=True)
