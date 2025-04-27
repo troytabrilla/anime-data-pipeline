@@ -8,7 +8,8 @@ WITH stats AS (
     average_score / 10.0 AS average_score,
     mean_score / 10.0 AS mean_score,
     popularity,
-    trending favourites
+    trending,
+    favourites
   FROM
     fact_anime
 ),
