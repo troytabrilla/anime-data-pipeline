@@ -14,10 +14,6 @@ from ..lib import schemas
 log = dg.get_dagster_logger()
 
 
-class RawConfig(dg.Config):
-    raw_json_filename: str = "raw.json"
-
-
 class IngestConfig(dg.Config):
     anilist_query_filename: str = "anilist.graphql"
 
