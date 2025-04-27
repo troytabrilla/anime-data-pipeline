@@ -2,7 +2,7 @@
 # folder in scaffolded `dg` projects, but "lib" is also present in Github's default gitignore file
 # for Python projects.
 !lib
+data
 .env
 .venv
 __pycache__
-data

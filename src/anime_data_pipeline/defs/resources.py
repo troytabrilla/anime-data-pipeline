@@ -13,8 +13,8 @@ class AniListAPIResource(dg.ConfigurableResource):
     user_name: str = Field(description="User to grab AniList data for")
     query_path: str = Field(description="Path to queries")
 
-    def query(self) -> Any:
-        query_path = Path(self.query_path, "anilist.graphql")
+    def query(self, query_filename: str) -> Any:
+        query_path = Path(self.query_path, query_filename)
         with open(query_path, "r") as query_file:
             query = query_file.read()
             body = {

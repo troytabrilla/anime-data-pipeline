@@ -1,3 +1,3 @@
 # Anime Data Pipeline
 
-A simple anime data pipeline to get familiar with some data engineering concepts.
+A simple anime data pipeline to try out some data engineering.

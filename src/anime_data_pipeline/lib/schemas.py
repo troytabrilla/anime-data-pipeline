@@ -1,6 +1,6 @@
-from pydantic import BaseModel, BeforeValidator, model_validator
+from pydantic import BaseModel, model_validator
 from datetime import datetime
-from typing import List, Any, Optional, Annotated
+from typing import List, Any, Optional
 
 
 class Entries(BaseModel):
@@ -125,43 +125,3 @@ class DimensionUser(Flattened):
     bannerImage: str
     siteUrl: str
     statistics: Any
-
-
-class Anime(Flattened):
-    id: int
-    userId: int
-    genres: List[str]
-    description: Optional[str]
-    coverImage: Optional[str]
-    type: Optional[str]
-    tags: List[Tag]
-    episodes: Optional[int]
-    format: Optional[str]
-    season: Optional[str]
-    seasonYear: Optional[int]
-    startDate: Optional[str]
-    endDate: Optional[str]
-    synonyms: List[str]
-    title: Title
-    source: Optional[str]
-    bannerImage: Optional[str]
-    averageScore: Optional[int]
-    meanScore: Optional[int]
-    popularity: Optional[int]
-    trending: Optional[int]
-    favourites: Optional[int]
-    siteUrl: Optional[str]
-    progress: Optional[int]
-    score: Optional[int]
-    startedAt: Optional[str]
-    completedAt: Optional[str]
-    status: Optional[str]
-    watchStatus: Optional[str]
-
-
-class User(Flattened):
-    id: int
-    name: str
-    avatar: Optional[str]
-    bannerImage: str
-    siteUrl: str

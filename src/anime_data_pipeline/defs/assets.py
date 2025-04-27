@@ -18,9 +18,13 @@ class RawConfig(dg.Config):
     raw_json_filename: str = "raw.json"
 
 
+class IngestConfig(dg.Config):
+    anilist_query_filename: str = "anilist.graphql"
+
+
 @dg.asset(group_name="ingest", compute_kind="json", io_manager_key="local_io_manager")
-def raw_anilist(anilist_api: AniListAPIResource) -> dg.Output:
-    data = anilist_api.query()
+def raw_anilist(anilist_api: AniListAPIResource, config: IngestConfig) -> dg.Output:
+    data = anilist_api.query(config.anilist_query_filename)
     metadata = {
         "user_name": anilist_api.user_name,
     }
