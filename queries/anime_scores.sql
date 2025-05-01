@@ -4,9 +4,9 @@ WITH stats AS (
     user_id,
     progress,
     watch_status,
-    CAST(score AS DOUBLE) AS score,
-    average_score / 10.0 AS average_score,
-    mean_score / 10.0 AS mean_score,
+    score,
+    average_score,
+    mean_score,
     popularity,
     trending,
     favourites
@@ -23,21 +23,17 @@ users AS (
 media AS (
   SELECT
     id,
-    CAST(title -> '$.english' AS VARCHAR) AS english_title,
-    CAST(title -> '$.native' AS VARCHAR) AS native_title,
-    CAST(title -> '$.romaji' AS VARCHAR) AS romaji_title,
+    title ->> '$.english' AS english_title,
+    title ->> '$.native' AS native_title,
+    title ->> '$.romaji' AS romaji_title,
     description,
     UNNEST (synonyms) AS synonym,
     UNNEST (genres) AS genre,
-    REPLACE(
-      CAST(UNNEST (tags) -> '$.name' AS VARCHAR),
-      '"',
-      ''
-    ) AS tag,
+    UNNEST (tags) ->> '$.name' AS tag,
     source,
-    CAST(episodes AS INT) AS episodes,
+    episodes,
     season,
-    CAST(season_year AS INT) AS season_year,
+    season_year,
     start_date,
     end_date,
     status

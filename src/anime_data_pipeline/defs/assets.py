@@ -44,9 +44,19 @@ def raw_anilist_validate_check(raw_anilist: dg.Output) -> dg.AssetCheckResult:
         return dg.AssetCheckResult(passed=False, metadata=metadata)
 
 
-def update_df_columns(df: pd.DataFrame) -> pd.DataFrame:
+def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
     df.columns = [pattern.sub("_", name).lower() for name in df.columns]
+    if "score" in df.columns:
+        df["score"] = df["score"] / 1.0
+    if "average_score" in df.columns:
+        df["average_score"] = df["average_score"] / 10.0
+    if "mean_score" in df.columns:
+        df["mean_score"] = df["mean_score"] / 10.0
+    if "episodes" in df.columns:
+        df["episodes"] = df["episodes"].astype("Int64")
+    if "season_year" in df.columns:
+        df["season_year"] = df["season_year"].astype("Int64")
     return df
 
 
@@ -77,7 +87,7 @@ def convert_anilist_json_to_model(data: Any, model: type[BaseModel]) -> pd.DataF
         log.debug(models[:5])
 
         df = pd.DataFrame.from_dict(models)
-        df = update_df_columns(df)
+        df = normalize_df(df)
 
         return df
     except KeyError as err:
@@ -147,7 +157,7 @@ def dimension_user(raw_anilist: Any) -> pd.DataFrame:
         log.debug(models)
 
         df = pd.DataFrame.from_dict(models)
-        df = update_df_columns(df)
+        df = normalize_df(df)
 
         return df
     except KeyError as err:
