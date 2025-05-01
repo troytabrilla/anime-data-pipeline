@@ -8,18 +8,14 @@ from dagster_duckdb import DuckDBResource
 from typing import Any
 from pathlib import Path
 
-from .resources import AniListAPIResource
+from .resources import AniListAPIResource, ResourceConfig
 from ..lib import schemas
 
 log = dg.get_dagster_logger()
 
 
-class IngestConfig(dg.Config):
-    anilist_query_filename: str = "anilist.graphql"
-
-
 @dg.asset(group_name="ingest", compute_kind="json", io_manager_key="local_io_manager")
-def raw_anilist(anilist_api: AniListAPIResource, config: IngestConfig) -> dg.Output:
+def raw_anilist(anilist_api: AniListAPIResource, config: ResourceConfig) -> dg.Output:
     data = anilist_api.query(config.anilist_query_filename)
     metadata = {
         "user_name": anilist_api.user_name,
@@ -170,20 +166,14 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
     return validate_dataframe(dimension_user)
 
 
-class AnalysisConfig(dg.Config):
-    duckdb_schema: str = "local.anilist"
-    query_path: str = dg.EnvVar("QUERY_PATH")
-    query_name: str = "anime_scores.sql"
-
-
 @dg.asset(
     group_name="analysis",
     compute_kind="duckdb",
     deps=[fact_anime, dimension_media, dimension_user],
     automation_condition=dg.AutomationCondition.eager(),
 )
-def anime_scores(duckdb: DuckDBResource, config: AnalysisConfig) -> pd.DataFrame:
-    query_path = Path(config.query_path, config.query_name)
+def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame:
+    query_path = Path(config.query_path, config.anime_score_query_filename)
     with open(query_path, "r") as query_file:
         query = query_file.read()
 

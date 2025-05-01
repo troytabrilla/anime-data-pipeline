@@ -56,21 +56,36 @@ class LocalFileJSONIOManager(dg.ConfigurableIOManager):
             return data
 
 
+class ResourceConfig(dg.Config):
+    data_path: str = "./data"
+    query_path: str = "./queries"
+    duckdb_filename: str = "anime_data.duckdb"
+    duckdb_schema: str = "anilist"
+    anilist_query_filename: str = "anilist.graphql"
+    anime_score_query_filename: str = "anime_scores.sql"
+
+
 user_name = dg.EnvVar("USER_NAME")
-data_path = dg.EnvVar("DATA_PATH")
-query_path = dg.EnvVar("QUERY_PATH")
-duckdb_path = dg.EnvVar("DUCKDB_PATH")
+resource_config = ResourceConfig()
 
 resource_defs = dg.Definitions(
     resources={
-        "anilist_api": AniListAPIResource(user_name=user_name, query_path=query_path),
-        "duckdb": DuckDBResource(database=duckdb_path),
+        "anilist_api": AniListAPIResource(
+            user_name=user_name, query_path=resource_config.query_path
+        ),
+        "duckdb": DuckDBResource(
+            database=str(
+                Path(resource_config.data_path, resource_config.duckdb_filename)
+            ),
+        ),
         "local_io_manager": LocalFileJSONIOManager(
-            data_path=data_path,
+            data_path=resource_config.data_path,
         ),
         "duckdb_io_manager": DuckDBPandasIOManager(
-            database=duckdb_path,
-            schema="anilist",
+            database=str(
+                Path(resource_config.data_path, resource_config.duckdb_filename)
+            ),
+            schema=resource_config.duckdb_schema,
         ),
     },
 )
