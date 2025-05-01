@@ -6,6 +6,7 @@ dependencies = [
     "dagster",
     "dagster-duckdb>=0.26.12",
     "dagster-duckdb-pandas>=0.26.12",
+    "dagster-webserver>=1.10.12",
     "pandas>=2.2.3",
     "pydantic>=2.11.3",
     "requests>=2.32.3",
@@ -16,7 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "dagster-webserver",
+    "dagster-dg>=0.26.12",
     "pytest>=8.3.5",
 ]
 
