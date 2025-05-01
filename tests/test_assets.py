@@ -1,6 +1,8 @@
 from anime_data_pipeline.defs.assets import *
 
 import json
+import pandas as pd
+from pandas.testing import assert_frame_equal
 
 from unittest import mock
 
@@ -81,14 +83,14 @@ TEST_FACT_ANIME_VALID = [
         "id": TEST_LISTS[0]["entries"][0]["id"],
         "user_id": TEST_LISTS[0]["entries"][0]["userId"],
         "media_id": TEST_LISTS[0]["entries"][0]["media"]["id"],
-        "average_score": TEST_LISTS[0]["entries"][0]["media"]["averageScore"],
-        "mean_score": TEST_LISTS[0]["entries"][0]["media"]["meanScore"],
+        "average_score": TEST_LISTS[0]["entries"][0]["media"]["averageScore"] / 10.0,
+        "mean_score": TEST_LISTS[0]["entries"][0]["media"]["meanScore"] / 10.0,
         "popularity": TEST_LISTS[0]["entries"][0]["media"]["popularity"],
         "trending": TEST_LISTS[0]["entries"][0]["media"]["trending"],
         "favourites": TEST_LISTS[0]["entries"][0]["media"]["favourites"],
         "progress": TEST_LISTS[0]["entries"][0]["progress"],
         "episodes": TEST_LISTS[0]["entries"][0]["media"]["episodes"],
-        "score": TEST_LISTS[0]["entries"][0]["score"],
+        "score": TEST_LISTS[0]["entries"][0]["score"] / 1.0,
         "watch_status": TEST_LISTS[0]["entries"][0]["status"],
         "started_at": None,
         "completed_at": None,
@@ -136,6 +138,15 @@ TEST_DIMENSION_USER_VALID = [
 TEST_DIMENSION_USER_INVALID = []
 
 
+def to_expected(data) -> pd.DataFrame:
+    df = pd.DataFrame.from_dict(data)
+    if "episodes" in df.columns:
+        df["episodes"] = df["episodes"].astype("Int64")
+    if "season_year" in df.columns:
+        df["season_year"] = df["season_year"].astype("Int64")
+    return df
+
+
 @mock.patch("anime_data_pipeline.defs.resources.AniListAPIResource")
 def test_raw_anilist_valid(mocked_anilist_api) -> None:
     mocked_anilist_api.query.return_value = TEST_RAW_ANILIST_VALID
@@ -168,9 +179,10 @@ def test_raw_anilist_invalid(mocked_anilist_api) -> None:
 def test_fact_anime_valid(mocked_duckdb_io_manager) -> None:
     actual = fact_anime(TEST_RAW_ANILIST_VALID)
     validated = fact_anime_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_FACT_ANIME_VALID)
+    expected = to_expected(TEST_FACT_ANIME_VALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
+    # assert actual.equals(expected)
     assert validated.passed == True
     assert validated.metadata["count"].value == 1
 
@@ -179,9 +191,9 @@ def test_fact_anime_valid(mocked_duckdb_io_manager) -> None:
 def test_fact_anime_invalid(mocked_duckdb_io_manager) -> None:
     actual = fact_anime(TEST_RAW_ANILIST_INVALID)
     validated = fact_anime_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_FACT_ANIME_INVALID)
+    expected = to_expected(TEST_FACT_ANIME_INVALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
     assert validated.passed == False
     assert validated.metadata["count"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
@@ -191,9 +203,9 @@ def test_fact_anime_invalid(mocked_duckdb_io_manager) -> None:
 def test_dimension_media_valid(mocked_duckdb_io_manager) -> None:
     actual = dimension_media(TEST_RAW_ANILIST_VALID)
     validated = dimension_media_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_DIMENSION_MEDIA_VALID)
+    expected = to_expected(TEST_DIMENSION_MEDIA_VALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
     assert validated.passed == True
     assert validated.metadata["count"].value == 1
 
@@ -202,9 +214,9 @@ def test_dimension_media_valid(mocked_duckdb_io_manager) -> None:
 def test_dimension_media_invalid(mocked_duckdb_io_manager) -> None:
     actual = dimension_media(TEST_RAW_ANILIST_INVALID)
     validated = dimension_media_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_DIMENSION_MEDIA_INVALID)
+    expected = to_expected(TEST_DIMENSION_MEDIA_INVALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
     assert validated.passed == False
     assert validated.metadata["count"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
@@ -214,9 +226,9 @@ def test_dimension_media_invalid(mocked_duckdb_io_manager) -> None:
 def test_dimension_user_valid(mocked_duckdb_io_manager) -> None:
     actual = dimension_user(TEST_RAW_ANILIST_VALID)
     validated = dimension_user_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_DIMENSION_USER_VALID)
+    expected = to_expected(TEST_DIMENSION_USER_VALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
     assert validated.passed == True
     assert validated.metadata["count"].value == 1
 
@@ -225,9 +237,9 @@ def test_dimension_user_valid(mocked_duckdb_io_manager) -> None:
 def test_dimension_user_invalid(mocked_duckdb_io_manager) -> None:
     actual = dimension_user(TEST_RAW_ANILIST_INVALID)
     validated = dimension_user_validate_check(actual)
-    expected = pd.DataFrame.from_dict(TEST_DIMENSION_USER_INVALID)
+    expected = to_expected(TEST_DIMENSION_USER_INVALID)
 
-    assert actual.equals(expected)
+    assert_frame_equal(actual, expected)
     assert validated.passed == False
     assert validated.metadata["count"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
