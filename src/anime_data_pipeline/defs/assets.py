@@ -5,10 +5,12 @@ import re
 
 from pydantic import ValidationError, BaseModel
 from dagster_duckdb import DuckDBResource
+from dagster_dbt import DbtCliResource, dbt_assets
 from typing import Any
 from pathlib import Path
 
 from .resources import AniListAPIResource, ResourceConfig
+from .project import adp_dbt_project
 from ..lib import schemas
 
 log = dg.get_dagster_logger()
@@ -206,3 +208,13 @@ def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame
 @dg.asset_check(asset=anime_scores, blocking=True)
 def anime_scores_validate_check(anime_scores: pd.DataFrame) -> dg.AssetCheckResult:
     return validate_dataframe(anime_scores)
+
+
+# TODO use dbt to perform transforms instead of python + pandas
+@dbt_assets(manifest=adp_dbt_project.manifest_path)
+def adp_dbt_dbt_assets(context: dg.AssetExecutionContext, dbt: DbtCliResource):
+    yield from dbt.cli(["build"], context=context).stream()
+
+
+# TODO add job to show graphs of scores by genres/tags
+# TODO save results/db to external persistent storage?

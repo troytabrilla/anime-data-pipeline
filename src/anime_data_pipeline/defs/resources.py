@@ -7,6 +7,9 @@ from typing import Any
 from pathlib import Path
 from dagster_duckdb import DuckDBResource
 from dagster_duckdb_pandas import DuckDBPandasIOManager
+from dagster_dbt import DbtCliResource
+
+from .project import adp_dbt_project
 
 
 class AniListAPIResource(dg.ConfigurableResource):
@@ -87,5 +90,6 @@ resource_defs = dg.Definitions(
             ),
             schema=resource_config.duckdb_schema,
         ),
+        "dbt": DbtCliResource(project_dir=adp_dbt_project),
     },
 )
