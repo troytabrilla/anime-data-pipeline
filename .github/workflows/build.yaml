@@ -20,9 +20,6 @@ jobs:
         if: ${{ env.ACT }}
         run: apt update && apt install -y nodejs
 
-      - name: Install Duckdb
-        run: curl https://install.duckdb.org | sh
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -33,11 +30,16 @@ jobs:
         with:
           python-version-file: pyproject.toml
 
+      - name: Install Duckdb
+        uses: opt-nc/setup-duckdb-action@v1.0.12
+        with:
+          version: v1.2.2
+
       - name: Install project
         run: uv sync --locked --all-extras --dev
 
       - name: Create dbt dependencies
-        run: mkdir data && echo "create schema if not exists dbt; create or replace table dbt.raw_anilist (data varchar);" | /root/.duckdb/cli/latest/duckdb data/anime_data.duckdb
+        run: mkdir data && echo "create schema if not exists dbt; create or replace table dbt.raw_anilist (data varchar);" | duckdb data/anime_data.duckdb
 
       - name: Build dbt models
         run: uv run dbt build
