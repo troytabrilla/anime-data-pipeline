@@ -16,9 +16,10 @@ clean-targets:
 
 models:
   anime_data_pipeline:
-    staging:
+    +schema: dbt
+    +materialized: table
+    marts:
       +materialized: view
-      +schema: dbt
 
 flags:
   send_anonymous_usage_stats: false

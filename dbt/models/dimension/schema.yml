@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: dimension_user
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: id
+        data_tests:
+          - not_null
+          - unique
+      - name: name
+        data_tests:
+          - not_null
+      - name: avatar
+      - name: banner_image
+      - name: site_url
+      - name: statistics
+
+  - name: dimension_media
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: id
+        data_tests:
+          - not_null
+          - unique
+      - name: genres
+      - name: description
+      - name: cover_image
+      - name: type
+      - name: tags
+      - name: episodes
+      - name: format
+      - name: season
+      - name: season_year
+      - name: start_date
+      - name: end_date
+      - name: synonyms
+      - name: title
+      - name: source
+      - name: banner_image
+      - name: site_url
+      - name: status

@@ -131,7 +131,7 @@ def validate_dataframe(df: pd.DataFrame) -> dg.AssetCheckResult:
 
 
 @dg.asset(
-    group_name="transform",
+    group_name="pandas",
     kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
@@ -146,7 +146,7 @@ def fact_anime_validate_check(fact_anime: pd.DataFrame) -> dg.AssetCheckResult:
 
 
 @dg.asset(
-    group_name="transform",
+    group_name="pandas",
     kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
@@ -163,7 +163,7 @@ def dimension_media_validate_check(
 
 
 @dg.asset(
-    group_name="transform",
+    group_name="pandas",
     kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
@@ -190,7 +190,7 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
 
 
 @dg.asset(
-    group_name="analysis",
+    group_name="pandas",
     kinds={"duckdb", "pandas"},
     deps=[fact_anime, dimension_media, dimension_user],
     automation_condition=dg.AutomationCondition.eager(),

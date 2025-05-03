@@ -2,7 +2,7 @@ WITH source AS (
   SELECT
     data -> '$.User' AS data
   FROM
-    {{ source('dbt', 'raw_anilist') }}
+    {{ source('anime_data', 'raw_anilist') }}
 )
 SELECT
   *

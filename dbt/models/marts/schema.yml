@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: anime_scores
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: user_id
+        data_tests:
+          - not_null
+      - name: media_id
+        data_tests:
+          - not_null
+      - name: user_name
+      - name: english_title
+      - name: native_title
+      - name: romaji_title
+      - name: description
+      - name: synonym
+      - name: genre
+      - name: tag
+      - name: source
+      - name: episodes
+      - name: season
+      - name: season_year
+      - name: start_date
+      - name: end_date
+      - name: status
+      - name: progress
+      - name: watch_status
+      - name: score
+      - name: average_score
+      - name: mean_score
+      - name: popularity
+      - name: trending
+      - name: favourites
