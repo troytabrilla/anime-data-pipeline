@@ -7,8 +7,12 @@ data
 .venv
 __pycache__
 .pytest_cache
-.git
-.gitignore
 *.tf
 .terraform*
 terraform.*
+target
+dbt_packages
+logs
+*-local.sh
+.git
+.gitignore

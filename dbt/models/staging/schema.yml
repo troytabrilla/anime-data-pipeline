@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_media
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: data
+        data_tests:
+          - not_null
+
+  - name: stg_user
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: data
+        data_tests:
+          - not_null

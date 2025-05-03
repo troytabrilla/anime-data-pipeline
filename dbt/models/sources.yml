@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: anime_data
+    database: anime_data
+    schema: dbt
+    tables:
+      - name: raw_anilist
+        meta:
+          dagster:
+            asset_key: ['dbt_raw']

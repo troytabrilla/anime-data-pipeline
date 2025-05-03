@@ -1,0 +1,25 @@
+name: 'anime_data_pipeline'
+version: '1.0.0'
+
+profile: 'anime_data_pipeline'
+
+model-paths: ['dbt/models']
+analysis-paths: ['dbt/analyses']
+test-paths: ['dbt/tests']
+seed-paths: ['dbt/seeds']
+macro-paths: ['dbt/macros']
+snapshot-paths: ['dbt/snapshots']
+
+clean-targets:
+  - 'target'
+  - 'dbt_packages'
+
+models:
+  anime_data_pipeline:
+    +schema: dbt
+    +materialized: table
+    marts:
+      +materialized: view
+
+flags:
+  send_anonymous_usage_stats: false

@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: fact_anime
+    config:
+      meta:
+        dagster:
+          group: dbt
+    columns:
+      - name: id
+        data_tests:
+          - not_null
+          - unique
+      - name: user_id
+        data_tests:
+          - not_null
+      - name: media_id
+        data_tests:
+          - not_null
+      - name: average_score
+      - name: mean_score
+      - name: popularity
+      - name: trending
+      - name: favourites
+      - name: progress
+      - name: episodes
+      - name: score
+      - name: watch_status
+      - name: started_at
+      - name: completed_at
+      - name: stats
+      - name: rankings

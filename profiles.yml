@@ -1,0 +1,7 @@
+anime_data_pipeline:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: data/anime_data.duckdb
+      threads: 24

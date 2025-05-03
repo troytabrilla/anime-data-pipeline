@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  build:
+    name: Build and test project
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install node for Act workaround (https://github.com/nektos/act/issues/973)
+        if: ${{ env.ACT }}
+        run: apt update && apt install -y nodejs
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.7.2
+
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pyproject.toml
+
+      - name: Install Duckdb
+        uses: opt-nc/setup-duckdb-action@v1.0.12
+        with:
+          version: v1.2.2
+
+      - name: Install project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Create dbt dependencies
+        run: mkdir data && echo "create schema if not exists dbt; create or replace table dbt.raw_anilist (data varchar);" | duckdb data/anime_data.duckdb
+
+      - name: Build dbt models
+        run: uv run dbt build
+
+      - name: Run tests
+        run: uv run pytest tests

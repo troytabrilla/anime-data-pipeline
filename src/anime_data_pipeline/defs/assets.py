@@ -5,16 +5,39 @@ import re
 
 from pydantic import ValidationError, BaseModel
 from dagster_duckdb import DuckDBResource
+from dagster_dbt import DbtCliResource, dbt_assets
 from typing import Any
 from pathlib import Path
 
 from .resources import AniListAPIResource, ResourceConfig
+from .project import adp_dbt_project
 from ..lib import schemas
 
 log = dg.get_dagster_logger()
 
 
-@dg.asset(group_name="ingest", compute_kind="json", io_manager_key="local_io_manager")
+@dg.asset(
+    group_name="setup",
+)
+def ensure_data_exists(
+    duckdb: DuckDBResource, config: ResourceConfig
+) -> dg.MaterializeResult:
+    Path(config.data_path).mkdir(parents=True, exist_ok=True)
+    with duckdb.get_connection() as conn:
+        conn.execute("SELECT 1;")
+        metadata = {
+            "success": True,
+            "msg": "created data directory and Duckdb database",
+        }
+        return dg.MaterializeResult(metadata=metadata)
+
+
+@dg.asset(
+    group_name="ingest",
+    kinds={"python"},
+    io_manager_key="local_io_manager",
+    deps=[ensure_data_exists],
+)
 def raw_anilist(anilist_api: AniListAPIResource, config: ResourceConfig) -> dg.Output:
     data = anilist_api.query(config.anilist_query_filename)
     metadata = {
@@ -92,24 +115,24 @@ def convert_anilist_json_to_model(data: Any, model: type[BaseModel]) -> pd.DataF
 
 
 def validate_dataframe(df: pd.DataFrame) -> dg.AssetCheckResult:
-    count = len(df)
+    rows = len(df)
     preview = df.tail().drop(
         ["stats", "rankings", "statistics", "genres", "tags", "synonyms"],
         axis=1,
         errors="ignore",
     )
     metadata = {
-        "count": dg.MetadataValue.int(count),
+        "rows": dg.MetadataValue.int(rows),
         "preview": dg.MetadataValue.md(preview.to_markdown()),
     }
-    if count == 0:
+    if rows == 0:
         metadata["error"] = "no rows processed"
-    return dg.AssetCheckResult(passed=count > 0, metadata=metadata)
+    return dg.AssetCheckResult(passed=rows > 0, metadata=metadata)
 
 
 @dg.asset(
-    group_name="transform",
-    compute_kind="duckdb",
+    group_name="pandas",
+    kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
 )
@@ -123,8 +146,8 @@ def fact_anime_validate_check(fact_anime: pd.DataFrame) -> dg.AssetCheckResult:
 
 
 @dg.asset(
-    group_name="transform",
-    compute_kind="duckdb",
+    group_name="pandas",
+    kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
 )
@@ -140,8 +163,8 @@ def dimension_media_validate_check(
 
 
 @dg.asset(
-    group_name="transform",
-    compute_kind="duckdb",
+    group_name="pandas",
+    kinds={"duckdb", "pandas"},
     io_manager_key="duckdb_io_manager",
     deps=[raw_anilist],
 )
@@ -167,8 +190,8 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
 
 
 @dg.asset(
-    group_name="analysis",
-    compute_kind="duckdb",
+    group_name="pandas",
+    kinds={"duckdb", "pandas"},
     deps=[fact_anime, dimension_media, dimension_user],
     automation_condition=dg.AutomationCondition.eager(),
 )
@@ -180,9 +203,8 @@ def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame
         with duckdb.get_connection() as conn:
             conn.execute(
                 f"""
-                USE {config.duckdb_schema};
                 CREATE OR REPLACE VIEW
-                    anime_scores
+                    {config.duckdb_schema}.anime_scores
                 AS
                     {query}
                 """
@@ -190,11 +212,10 @@ def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame
 
             df = conn.execute(
                 f"""
-                USE {config.duckdb_schema};
                 SELECT
                     *
                 FROM
-                    anime_scores;
+                    {config.duckdb_schema}.anime_scores;
                 """
             ).fetchdf()
 
@@ -206,3 +227,53 @@ def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame
 @dg.asset_check(asset=anime_scores, blocking=True)
 def anime_scores_validate_check(anime_scores: pd.DataFrame) -> dg.AssetCheckResult:
     return validate_dataframe(anime_scores)
+
+
+class DBTConfig(ResourceConfig):
+    raw_json_filename: str = "raw_anilist.json"
+    dbt_schema: str = "dbt"
+    dbt_raw_table: str = "raw_anilist"
+
+
+@dg.asset(
+    group_name="dbt",
+    kinds={"duckdb"},
+    deps=[raw_anilist],
+)
+def dbt_raw(
+    context: dg.AssetExecutionContext,
+    duckdb: DuckDBResource,
+    config: DBTConfig,
+) -> None:
+    run_id = context.run.run_id
+    raw_anilist_json_filepath = Path(config.data_path, run_id, config.raw_json_filename)
+
+    with duckdb.get_connection() as conn:
+        conn.execute(f"CREATE SCHEMA IF NOT EXISTS {config.dbt_schema};")
+        conn.execute(
+            f"CREATE OR REPLACE TABLE {config.dbt_schema}.{config.dbt_raw_table} AS SELECT * FROM '{raw_anilist_json_filepath}'"
+        )
+
+
+@dg.asset_check(asset=dbt_raw, blocking=True)
+def dbt_raw_validate_check(
+    duckdb: DuckDBResource, config: DBTConfig
+) -> dg.AssetCheckResult:
+    with duckdb.get_connection() as conn:
+        results = conn.execute(
+            f"SELECT COUNT(*) FROM {config.dbt_schema}.{config.dbt_raw_table}"
+        ).fetchone()
+        rows = results[0]
+    metadata = {"rows": dg.MetadataValue.int(rows)}
+    if rows == 0:
+        metadata["error"] = "no rows processed"
+    return dg.AssetCheckResult(passed=rows == 1, metadata=metadata)
+
+
+@dbt_assets(manifest=adp_dbt_project.manifest_path)
+def adp_dbt_dbt_assets(context: dg.AssetExecutionContext, dbt: DbtCliResource):
+    yield from dbt.cli(["build"], context=context).stream()
+
+
+# TODO add job to show graphs of scores by genres/tags
+# TODO save results/db to external persistent storage?

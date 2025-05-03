@@ -184,7 +184,7 @@ def test_fact_anime_valid(mocked_duckdb_io_manager) -> None:
     assert_frame_equal(actual, expected)
     # assert actual.equals(expected)
     assert validated.passed == True
-    assert validated.metadata["count"].value == 1
+    assert validated.metadata["rows"].value == 1
 
 
 @mock.patch("dagster_duckdb_pandas.DuckDBPandasIOManager")
@@ -195,7 +195,7 @@ def test_fact_anime_invalid(mocked_duckdb_io_manager) -> None:
 
     assert_frame_equal(actual, expected)
     assert validated.passed == False
-    assert validated.metadata["count"].value == 0
+    assert validated.metadata["rows"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
 
 
@@ -207,7 +207,7 @@ def test_dimension_media_valid(mocked_duckdb_io_manager) -> None:
 
     assert_frame_equal(actual, expected)
     assert validated.passed == True
-    assert validated.metadata["count"].value == 1
+    assert validated.metadata["rows"].value == 1
 
 
 @mock.patch("dagster_duckdb_pandas.DuckDBPandasIOManager")
@@ -218,7 +218,7 @@ def test_dimension_media_invalid(mocked_duckdb_io_manager) -> None:
 
     assert_frame_equal(actual, expected)
     assert validated.passed == False
-    assert validated.metadata["count"].value == 0
+    assert validated.metadata["rows"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
 
 
@@ -230,7 +230,7 @@ def test_dimension_user_valid(mocked_duckdb_io_manager) -> None:
 
     assert_frame_equal(actual, expected)
     assert validated.passed == True
-    assert validated.metadata["count"].value == 1
+    assert validated.metadata["rows"].value == 1
 
 
 @mock.patch("dagster_duckdb_pandas.DuckDBPandasIOManager")
@@ -241,5 +241,5 @@ def test_dimension_user_invalid(mocked_duckdb_io_manager) -> None:
 
     assert_frame_equal(actual, expected)
     assert validated.passed == False
-    assert validated.metadata["count"].value == 0
+    assert validated.metadata["rows"].value == 0
     assert validated.metadata["error"].value == "no rows processed"
