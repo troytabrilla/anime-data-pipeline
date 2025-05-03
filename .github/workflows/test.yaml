@@ -34,8 +34,8 @@ jobs:
       - name: Install project
         run: uv sync --locked --all-extras --dev
 
-      - name: Create empty Duckdb database
-        run: mkdir data && echo "select 1;" | /root/.duckdb/cli/latest/duckdb data/anime_data.duckdb
+      - name: Create dbt dependencies
+        run: mkdir data && echo "create schema if not exists dbt; create or replace table dbt.raw_anilist (data varchar);" | /root/.duckdb/cli/latest/duckdb data/anime_data.duckdb
 
       - name: Build dbt models
         run: uv run dbt build

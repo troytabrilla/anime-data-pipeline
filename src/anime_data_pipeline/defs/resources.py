@@ -63,7 +63,7 @@ class ResourceConfig(dg.Config):
     data_path: str = "./data"
     query_path: str = "./queries"
     duckdb_filename: str = "anime_data.duckdb"
-    duckdb_schema: str = "anilist"
+    duckdb_schema: str = "pandas"
     anilist_query_filename: str = "anilist.graphql"
     anime_score_query_filename: str = "anime_scores.sql"
 
