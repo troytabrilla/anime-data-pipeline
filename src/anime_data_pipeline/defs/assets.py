@@ -270,9 +270,6 @@ def dbt_raw_validate_check(
     return dg.AssetCheckResult(passed=rows == 1, metadata=metadata)
 
 
-# TODO use dbt to perform transforms instead of python + pandas
-
-
 @dbt_assets(manifest=adp_dbt_project.manifest_path)
 def adp_dbt_dbt_assets(context: dg.AssetExecutionContext, dbt: DbtCliResource):
     yield from dbt.cli(["build"], context=context).stream()
