@@ -12,3 +12,4 @@ terraform.*
 target
 dbt_packages
 logs
+*-local.sh
