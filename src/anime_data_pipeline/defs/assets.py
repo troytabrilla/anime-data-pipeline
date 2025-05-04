@@ -1,11 +1,15 @@
 import dagster as dg
 import pandas as pd
+import plotly.express as px
 import json
 import re
+import os
+import io
+import base64
 
 from pydantic import ValidationError, BaseModel
 from dagster_duckdb import DuckDBResource
-from dagster_dbt import DbtCliResource, dbt_assets
+from dagster_dbt import DbtCliResource, dbt_assets, get_asset_key_for_model
 from typing import Any
 from pathlib import Path
 
@@ -196,7 +200,7 @@ def dimension_user_validate_check(dimension_user: pd.DataFrame) -> dg.AssetCheck
     automation_condition=dg.AutomationCondition.eager(),
 )
 def anime_scores(duckdb: DuckDBResource, config: ResourceConfig) -> pd.DataFrame:
-    query_path = Path(config.query_path, config.anime_score_query_filename)
+    query_path = Path(config.query_path, config.anime_scores_query_filename)
     with open(query_path, "r") as query_file:
         query = query_file.read()
 
@@ -275,5 +279,75 @@ def adp_dbt_dbt_assets(context: dg.AssetExecutionContext, dbt: DbtCliResource):
     yield from dbt.cli(["build"], context=context).stream()
 
 
-# TODO add job to show graphs of scores by genres/tags
+def generate_plots(
+    duckdb: DuckDBResource,
+    config: ResourceConfig,
+    query_filename: str,
+    color: str | None = None,
+) -> dg.MaterializeResult:
+    query_path = Path(config.query_path, query_filename)
+    with open(query_path, "r") as query_file:
+        query = query_file.read()
+
+        with duckdb.get_connection() as conn:
+            df = conn.execute(query).fetchdf()
+            fig = px.bar(df, x="score", y="count", color=color, title="Score Count")
+            chart_path = Path(config.data_path, query_filename).with_suffix(".html")
+            fig.write_html(chart_path, auto_open=True)
+            buffer = fig.to_image(format="png")
+            image_data = base64.b64encode(buffer)
+            md = f"![img](data:image/png;base64,{image_data.decode()})"
+            url = "file://" + str(chart_path.resolve())
+            metadata = {
+                "plot_md": dg.MetadataValue.md(md),
+                "plot_url": dg.MetadataValue.url(url),
+            }
+            return dg.MaterializeResult(metadata=metadata)
+
+
+@dg.asset(
+    group_name="plots",
+    kinds={"python"},
+    deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
+)
+def dbt_count_scores(
+    duckdb: DuckDBResource, config: ResourceConfig
+) -> dg.MaterializeResult:
+    return generate_plots(
+        duckdb=duckdb, config=config, query_filename=config.count_scores_query_filename
+    )
+
+
+@dg.asset(
+    group_name="plots",
+    kinds={"python"},
+    deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
+)
+def dbt_count_scores_genre(
+    duckdb: DuckDBResource, config: ResourceConfig
+) -> dg.MaterializeResult:
+    return generate_plots(
+        duckdb=duckdb,
+        config=config,
+        query_filename=config.count_scores_genre_query_filename,
+        color="genre",
+    )
+
+
+@dg.asset(
+    group_name="plots",
+    kinds={"python"},
+    deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
+)
+def dbt_count_scores_tag(
+    duckdb: DuckDBResource, config: ResourceConfig
+) -> dg.MaterializeResult:
+    return generate_plots(
+        duckdb=duckdb,
+        config=config,
+        query_filename=config.count_scores_tag_query_filename,
+        color="tag",
+    )
+
+
 # TODO save results/db to external persistent storage?

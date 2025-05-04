@@ -12,7 +12,9 @@ dependencies = [
     "dagster-webserver>=1.10.12",
     "dbt-duckdb>=1.9.3",
     "duckdb>=1.2.2",
+    "kaleido==0.2.1",
     "pandas>=2.2.3",
+    "plotly>=6.0.1",
     "pyarrow>=20.0.0",
     "pydantic>=2.11.3",
     "requests>=2.32.3",
@@ -24,6 +26,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dagster-dg>=0.26.13",
+    "ipykernel>=6.29.5",
+    "jupyterlab>=4.4.1",
     "pytest>=8.3.5",
 ]
 
