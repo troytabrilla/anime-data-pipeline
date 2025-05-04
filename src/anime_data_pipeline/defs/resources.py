@@ -65,7 +65,10 @@ class ResourceConfig(dg.Config):
     duckdb_filename: str = "anime_data.duckdb"
     duckdb_schema: str = "pandas"
     anilist_query_filename: str = "anilist.graphql"
-    anime_score_query_filename: str = "anime_scores.sql"
+    anime_scores_query_filename: str = "anime_scores.sql"
+    count_scores_query_filename: str = "count_scores.sql"
+    count_scores_genre_query_filename: str = "count_scores_by_top_genre.sql"
+    count_scores_tag_query_filename: str = "count_scores_by_top_tag.sql"
 
 
 user_name = dg.EnvVar("USER_NAME")
