@@ -310,7 +310,7 @@ def generate_plots(
     kinds={"python"},
     deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
 )
-def dbt_count_scores(
+def plot_count_scores(
     duckdb: DuckDBResource, config: ResourceConfig
 ) -> dg.MaterializeResult:
     return generate_plots(
@@ -323,7 +323,7 @@ def dbt_count_scores(
     kinds={"python"},
     deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
 )
-def dbt_count_scores_genre(
+def plot_count_scores_genre(
     duckdb: DuckDBResource, config: ResourceConfig
 ) -> dg.MaterializeResult:
     return generate_plots(
@@ -339,7 +339,7 @@ def dbt_count_scores_genre(
     kinds={"python"},
     deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
 )
-def dbt_count_scores_tag(
+def plot_count_scores_tag(
     duckdb: DuckDBResource, config: ResourceConfig
 ) -> dg.MaterializeResult:
     return generate_plots(
@@ -348,6 +348,24 @@ def dbt_count_scores_tag(
         query_filename=config.count_scores_tag_query_filename,
         color="tag",
     )
+
+
+@dg.asset(
+    group_name="stores",
+    kinds={"python"},
+    deps=[get_asset_key_for_model([adp_dbt_dbt_assets], "anime_scores")],
+)
+def store_anime_scores_parquet(
+    duckdb: DuckDBResource, config: ResourceConfig
+) -> dg.MaterializeResult:
+    anime_scores_parquet_filepath = Path(
+        config.data_path, config.anime_scores_parquet_filename
+    )
+
+    with duckdb.get_connection() as conn:
+        conn.sql(
+            f"COPY (FROM dbt.anime_scores) TO '{anime_scores_parquet_filepath}' (FORMAT parquet)"
+        )
 
 
 # TODO save results/db to external persistent storage?

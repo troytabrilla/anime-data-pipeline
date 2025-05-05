@@ -13,11 +13,14 @@ dependencies = [
     "dbt-duckdb>=1.9.3",
     "duckdb>=1.2.2",
     "kaleido==0.2.1",
+    "matplotlib>=3.9.4",
     "pandas>=2.2.3",
     "plotly>=6.0.1",
     "pyarrow>=20.0.0",
     "pydantic>=2.11.3",
+    "pyspark>=3.5.5",
     "requests>=2.32.3",
+    "seaborn>=0.13.2",
 ]
 
 [project.entry-points]

@@ -1,6 +1,6 @@
 SELECT
-  COUNT(DISTINCT(media_id)) AS count,
-  score
+  score,
+  COUNT(DISTINCT(media_id)) AS count
 FROM
   dbt.anime_scores
 WHERE
@@ -8,4 +8,4 @@ WHERE
 GROUP BY
   score
 ORDER BY
-  count DESC;
+  count DESC, score DESC;

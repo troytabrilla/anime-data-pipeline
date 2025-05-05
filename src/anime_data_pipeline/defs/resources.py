@@ -69,6 +69,7 @@ class ResourceConfig(dg.Config):
     count_scores_query_filename: str = "count_scores.sql"
     count_scores_genre_query_filename: str = "count_scores_by_top_genre.sql"
     count_scores_tag_query_filename: str = "count_scores_by_top_tag.sql"
+    anime_scores_parquet_filename: str = "anime_scores.parquet"
 
 
 user_name = dg.EnvVar("USER_NAME")

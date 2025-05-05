@@ -1,8 +1,8 @@
 WITH stats AS (
   SELECT
-    COUNT(*) AS count,
     genre,
     score,
+    COUNT(*) AS count,
     ROW_NUMBER() OVER (PARTITION BY score ORDER BY count DESC) AS rank
   FROM
     dbt.anime_scores
@@ -11,7 +11,7 @@ WITH stats AS (
   GROUP BY
     genre, score
   ORDER BY
-    count DESC
+    count DESC, score DESC
 )
 SELECT
   *
