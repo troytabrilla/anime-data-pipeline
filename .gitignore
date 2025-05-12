@@ -8,9 +8,8 @@ data
 __pycache__
 .pytest_cache
 .terraform
-terraform.*
+terraform.tfstate*
 target
 dbt_packages
 logs
-*-local.sh
 spark-warehouse

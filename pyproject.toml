@@ -12,6 +12,7 @@ dependencies = [
     "dagster-webserver>=1.10.12",
     "dbt-duckdb>=1.9.3",
     "duckdb>=1.2.2",
+    "kafka-python>=2.2.6",
     "kaleido==0.2.1",
     "matplotlib>=3.9.4",
     "pandas>=2.2.3",
@@ -19,6 +20,7 @@ dependencies = [
     "pyarrow>=20.0.0",
     "pydantic>=2.11.3",
     "pyspark>=3.5.5",
+    "python-dotenv>=1.1.0",
     "requests>=2.32.3",
     "seaborn>=0.13.2",
 ]

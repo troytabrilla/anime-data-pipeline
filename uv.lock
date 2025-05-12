@@ -54,6 +54,7 @@ dependencies = [
     { name = "dagster-webserver" },
     { name = "dbt-duckdb" },
     { name = "duckdb" },
+    { name = "kafka-python" },
     { name = "kaleido" },
     { name = "matplotlib", version = "3.9.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "matplotlib", version = "3.10.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -62,6 +63,7 @@ dependencies = [
     { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pyspark" },
+    { name = "python-dotenv" },
     { name = "requests" },
     { name = "seaborn" },
 ]
@@ -85,6 +87,7 @@ requires-dist = [
     { name = "dagster-webserver", specifier = ">=1.10.12" },
     { name = "dbt-duckdb", specifier = ">=1.9.3" },
     { name = "duckdb", specifier = ">=1.2.2" },
+    { name = "kafka-python", specifier = ">=2.2.6" },
     { name = "kaleido", specifier = "==0.2.1" },
     { name = "matplotlib", specifier = ">=3.9.4" },
     { name = "pandas", specifier = ">=2.2.3" },
@@ -92,6 +95,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=20.0.0" },
     { name = "pydantic", specifier = ">=2.11.3" },
     { name = "pyspark", specifier = ">=3.5.5" },
+    { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "seaborn", specifier = ">=0.13.2" },
 ]
@@ -1900,6 +1904,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/0a/c9/a883ce65eb27905ce77ace410d83587c82ea64dc85a48d1f7ed52bcfa68d/jupyterlab_server-2.27.3.tar.gz", hash = "sha256:eb36caca59e74471988f0ae25c77945610b887f777255aa21f8065def9e51ed4", size = 76173, upload-time = "2024-07-16T17:02:04.149Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/09/2032e7d15c544a0e3cd831c51d77a8ca57f7555b2e1b2922142eddb02a84/jupyterlab_server-2.27.3-py3-none-any.whl", hash = "sha256:e697488f66c3db49df675158a77b3b017520d772c6e1548c7d9bcc5df7944ee4", size = 59700, upload-time = "2024-07-16T17:02:01.115Z" },
+]
+
+[[package]]
+name = "kafka-python"
+version = "2.2.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/e1/e84f846614195c01c9e98db6e58bd18eaa7baaa01e78d95b0522d03e8c66/kafka_python-2.2.6.tar.gz", hash = "sha256:b18a15e614864afedd514cc75f203cc3555bb85b915326c9fce0e49a80ca441f", size = 345160, upload-time = "2025-05-08T20:08:29.507Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ea/f4/fb2f88fa3ee67328f69c08e8e45591a5afb39c6d32b5e69f484a41d94a2d/kafka_python-2.2.6-py2.py3-none-any.whl", hash = "sha256:bacc5b00ddcfd79a33d761553dbf3e262389865432b51310e12399fac66f3c99", size = 308239, upload-time = "2025-05-08T20:08:19.947Z" },
 ]
 
 [[package]]

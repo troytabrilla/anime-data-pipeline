@@ -1,10 +1,5 @@
-# TODO merge helm branch and try to terraform helm
 terraform {
   required_providers {
-    # docker = {
-    #   source = "kreuzwerker/docker"
-    #   version = "~> 3.0.1"
-    # }
     kubernetes = {
       source = "hashicorp/kubernetes"
       version = "~> 2.36.0"
@@ -12,34 +7,14 @@ terraform {
   }
 }
 
-variable "user_name" {
-  type = string
-  sensitive = true
-}
-
-# provider "docker" {}
-
-# resource "docker_image" "adp" {
-#   name = "adp"
-#   build {
-#     context = "."
-#     tag = ["adp:latest"]
-#   }
-# }
-
-# resource "docker_container" "adp" {
-#   name = "adp"
-#   image = docker_image.adp.name
-#   env = ["USER_NAME=${var.user_name}"]
-#   ports {
-#     internal = 3000
-#     external = 3000
-#   }
-# }
-
 provider "kubernetes" {
   config_path = "~/.kube/config"
   config_context = "minikube"
+}
+
+variable "user_name" {
+  type = string
+  sensitive = true
 }
 
 resource "kubernetes_namespace" "local" {
@@ -102,6 +77,40 @@ resource "kubernetes_deployment" "adp_deployment" {
   }
 }
 
+resource "kubernetes_deployment" "broker_deployment" {
+  metadata {
+    name = "broker-deployment"
+    labels = {
+      app = "broker"
+    }
+    namespace = "local"
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "broker"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "broker"
+        }
+      }
+      spec {
+        container {
+          image = "apache/kafka:latest"
+          name = "broker"
+          port {
+            container_port = 9092
+          }
+        }
+      }
+    }
+  }
+}
+
 resource "kubernetes_service" "adp_service" {
   metadata {
     name = "adp-service"
@@ -121,3 +130,25 @@ resource "kubernetes_service" "adp_service" {
     create = "30s"
   }
 }
+
+resource "kubernetes_service" "broker_service" {
+  metadata {
+    name = "broker-service"
+    namespace = "local"
+  }
+  spec {
+    type = "LoadBalancer"
+    port {
+      port = 9092
+      target_port = 9092
+    }
+    selector = {
+      app = "broker"
+    }
+  }
+  timeouts {
+    create = "30s"
+  }
+}
+
+# TODO try to terraform helm
