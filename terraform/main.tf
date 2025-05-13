@@ -72,6 +72,7 @@ resource "kubernetes_deployment" "adp_deployment" {
             container_port = 3000
           }
         }
+        host_network = true
       }
     }
   }
@@ -127,7 +128,7 @@ resource "kubernetes_service" "adp_service" {
     }
   }
   timeouts {
-    create = "30s"
+    create = "10s"
   }
 }
 
@@ -147,7 +148,7 @@ resource "kubernetes_service" "broker_service" {
     }
   }
   timeouts {
-    create = "30s"
+    create = "10s"
   }
 }
 
