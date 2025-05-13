@@ -30,7 +30,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "dagster-dg>=0.26.13",
+    "dagster-dg>=0.26.14",
     "ipykernel>=6.29.5",
     "jupyterlab>=4.4.1",
     "pytest>=8.3.5",

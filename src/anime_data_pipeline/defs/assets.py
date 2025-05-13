@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 import json
 import re
-import os
-import io
 import base64
 
 from pydantic import ValidationError, BaseModel
@@ -13,7 +11,7 @@ from dagster_dbt import DbtCliResource, dbt_assets, get_asset_key_for_model
 from typing import Any
 from pathlib import Path
 
-from .resources import AniListAPIResource, ResourceConfig
+from .resources import AniListAPIResource, ResourceConfig, KafkaResource
 from .project import adp_dbt_project
 from ..lib import schemas
 
@@ -366,6 +364,19 @@ def store_anime_scores_parquet(
         conn.sql(
             f"COPY (FROM dbt.anime_scores) TO '{anime_scores_parquet_filepath}' (FORMAT parquet)"
         )
+        metadata = {"filepath": anime_scores_parquet_filepath}
+        return dg.MaterializeResult(metadata=metadata)
 
 
-# TODO save results/db to external persistent storage?
+@dg.asset(
+    group_name="kafka",
+    kinds={"python"},
+    deps=[raw_anilist],
+)
+def kafka_topics(raw_anilist: Any, kafka: KafkaResource) -> dg.MaterializeResult:
+    kafka.produce(raw_anilist)
+    metadata = {
+        "raw_user_topic": kafka.raw_user_topic,
+        "raw_media_topic": kafka.raw_media_topic,
+    }
+    return dg.MaterializeResult(metadata=metadata)
